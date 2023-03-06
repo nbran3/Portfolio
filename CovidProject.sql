@@ -2,10 +2,6 @@ SELECT *
 FROM dbo.Deaths$
 ORDER BY 3,4
 
---SELECT *
---FROM dbo.Vaccine$
---order by 3,4
-
 ----- By Country
 
 SELECT location, date, total_cases, new_cases, total_deaths, population
