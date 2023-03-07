@@ -5,5 +5,5 @@ Recently I finished the Google Data Analytics Professional Certificate and I am 
 my projects to this repository. This will be an ongoing process. I am also looking for my first post-graduate job with anything to do with data analysis preferably 
 in the field of economics and/or finance.
 
-The first project I uploaded was a simple Data Exploration project in SQL with Global COVID-19 Data from early 2020 to early March 2023. The code/syntax for that project 
-is on this repository under the title "CovidProject.sql". For that project, I used Microsoft SQL Server Management Studio 19 on Windows 11. 
+Here is a link to my Tableau Public account : https://public.tableau.com/app/profile/noah.brannon.
+I primarily use Windows 11 and Microsoft based applications like Excel and Microsoft SQL Server, but I am comfortable using macOS.
