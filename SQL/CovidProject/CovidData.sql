@@ -1,4 +1,4 @@
-ELECT *
+SELECT *
 FROM dbo.Deaths$
 ORDER BY 3,4
 
