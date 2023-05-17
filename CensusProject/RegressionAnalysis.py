@@ -27,7 +27,7 @@ model = sm.OLS(y,x)
 results = model.fit()
 """
 
-"""
+
 ### Education and Total Insured Regression
 model = LinearRegression()
 
@@ -38,18 +38,9 @@ z_pred = model.predict(y)
 y = sm.add_constant(y)
 model = sm.OLS(z,y)
 results = model.fit()
-"""
 
-coefficients = results.params
-rsqaured = results.rsquared
-p_values = results.pvalues
 
-print("Coefficients:")
-print(coefficients)
-print("\nR-squared:")
-print(rsqaured)
-print("\nP-values:")
-print(p_values)
+print(results.summary())
 
 plt.scatter(z,z_pred)
 plt.xlabel("Actual values")
