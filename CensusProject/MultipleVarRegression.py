@@ -1,4 +1,4 @@
-#This was for fun this is not part of the overal/ project
+#This was for fun this is not part of the overall project
 import pandas as pd
 import statsmodels.api as sm
 import matplotlib.pyplot as plt
