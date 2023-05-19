@@ -1,3 +1,4 @@
+#This was for fun this is not part of the overal/ project
 import pandas as pd
 import statsmodels.api as sm
 import matplotlib.pyplot as plt
