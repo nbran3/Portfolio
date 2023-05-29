@@ -9,7 +9,6 @@ option_y = st.selectbox('Select data  for y-axis', ('GDP','Happiness','Generosit
 
 df = pd.read_csv('happy.csv')
 
-
 match option_x:
     case 'Happiness':
         x_array = df['happiness']
@@ -29,3 +28,4 @@ match option_y:
 st.subheader(f"{option_x} and {option_y}")
 figure1 = px.scatter(x=x_array,y=y_array,labels={'x':option_x, 'y':option_y},trendline='ols')
 st.plotly_chart(figure1)
+
