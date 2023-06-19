@@ -5,8 +5,7 @@ The analysis further explores specific listings with high price-to-occupancy and
 Additionally, I calculated averages for major boroughs and categorized each neighborhood as "Above Average" or "Below Average" based on price, price-to-occupancy ratio, and price-to-reviews ratio. 
 These findings provide valuable insights into the pricing and occupancy trends of Airbnb listings in different neighborhoods of New York City.
 Here is a link to the visualizations that I created in Tableau Public. 
+
 Dashboard 1 - Average Price - https://public.tableau.com/app/profile/noah.brannon/viz/NYCairbnb_16872016479050/Price
-
 Dashboard 2 - Price to Occupancy Ratio - https://public.tableau.com/app/profile/noah.brannon/viz/NYCairbnb_16872016479050/PricetoOccupancy
-
 Dashboard 3 - Price to Reviews Ratio - https://public.tableau.com/app/profile/noah.brannon/viz/NYCairbnb_16872016479050/PricetoReviews
