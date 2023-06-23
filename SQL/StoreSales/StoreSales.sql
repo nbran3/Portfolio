@@ -1,13 +1,100 @@
----Looking at average Sales per region (East, South, Midwest, West) 
-SELECT AVG(sales) as AvgSales, Region
+--- Creating new columns such as Revenue, Profit Margin, and more
+Alter Table [Projects].[dbo].[StoreSales$] ADD Revenue DECIMAL(10,2)
+
+Update [Projects].[dbo].[StoreSales$]
+SET Revenue = Sales * Quantity
+
+Alter Table [Projects].[dbo].[StoreSales$] ADD ProfitMargin DECIMAL(10,2)
+
+Update [Projects].[dbo].[StoreSales$]
+SET ProfitMargin = (Profit/ Revenue) * 100
+
+Alter Table [Projects].[dbo].[StoreSales$] ADD DiscountedPriceDiff DECIMAL(10,2)
+
+Update Projects.dbo.StoreSales$
+SET DiscountedPriceDiff  =  Sales - (Sales * Discount)
+
+Alter Table [Projects].[dbo].[StoreSales$] ADD OrderDuration INT
+
+Update [Projects].[dbo].[StoreSales$]
+SET OrderDuration = DATEDIFF(day, Order_Date, Ship_Date)
+
+ALTER TABLE Projects.dbo.StoreSales$ ADD Order_Month INT;
+ALTER TABLE Projects.dbo.StoreSales$ ADD Order_Year INT;
+
+UPDATE Projects.dbo.StoreSales$
+SET Order_Month = MONTH(Order_Date),
+    Order_Year = YEAR(Order_Date);
+
+SELECT *
+from Projects.dbo.StoreSales$
+
+---Looking at average Sales, the sum of sales, average discount, and other metrics per region (East, South, Midwest, West) 
+Select DISTINCT State
+from Projects.dbo.StoreSales$
+WHERE region = 'West'
+
+
+SELECT AVG(sales) as AvgSales, Region, Order_Year
 FROM [Projects].[dbo].[StoreSales$]
-GROUP BY Region
+GROUP BY Order_Year, Region
 ORDER by AvgSales
 
---- Finding Average profit by State
-Select State, AVG(profit)
+SELECT sum(sales) as TotalSales, Region, Order_Year
 FROM [Projects].[dbo].[StoreSales$]
-GROUP by State
+GROUP BY Order_Year, Region
+ORDER by Order_Year
+
+SELECT sum(revenue) as TotalRev, Region, Order_Year
+FROM [Projects].[dbo].[StoreSales$]
+GROUP BY Region, Order_Year
+ORDER by Order_Year
+
+SELECT avg(Discount) as AVGDiscount, Region, Order_Year
+FROM [Projects].[dbo].[StoreSales$]
+GROUP BY Order_Year,Region
+ORDER by Order_Year, AvgDiscount
+
+SELECT sum(Quantity) as TotalQuan, Region, Order_Year
+FROM [Projects].[dbo].[StoreSales$]
+GROUP BY Region, Order_Year
+ORDER by Order_Year
+
+SELECT avg(OrderDuration) as AvgOrderDuration, Region, Order_Year
+FROM [Projects].[dbo].[StoreSales$]
+GROUP BY Region, Order_Year
+ORDER by Order_Year
+
+--- Finding metrics by states
+SELECT AVG(sales) as AvgSales, [State], Order_Year
+FROM [Projects].[dbo].[StoreSales$]
+GROUP BY Order_Year, [State]
+ORDER by AvgSales
+
+SELECT sum(sales) as TotalSales, State, Order_Year
+FROM [Projects].[dbo].[StoreSales$]
+GROUP BY Order_Year, [State]
+ORDER by Order_Year
+
+SELECT sum(revenue) as TotalRev, [State], Order_Year
+FROM [Projects].[dbo].[StoreSales$]
+GROUP BY [State], Order_Year
+ORDER by Order_Year
+
+SELECT avg(Discount) as AVGDiscount, [State], Order_Year
+FROM [Projects].[dbo].[StoreSales$]
+GROUP BY Order_Year,[State]
+ORDER by Order_Year, AvgDiscount
+
+SELECT sum(Quantity) as TotalQuan, [State], Order_Year
+FROM [Projects].[dbo].[StoreSales$]
+GROUP BY [State], Order_Year
+ORDER by Order_Year
+
+SELECT avg(OrderDuration) as AvgOrderDuration, State, Order_Year
+FROM [Projects].[dbo].[StoreSales$]
+GROUP BY State, Order_Year
+ORDER by Order_Year
 
 --- Finding the most common shipping method by state, that is not standard class
 SELECT MAX(Ship_Mode) as MostCommonShipMethod, State
@@ -16,7 +103,7 @@ WHERE Ship_Mode <> 'Standard Class'
 Group by State
 ORDER by MostCommonShipMethod
 
---- Finding the most popular catergory purchase state
+--- Finding the most popular category purchase state
 SELECT Max(Category) as MostPopularCategory, State
 FROM [Projects].[dbo].[StoreSales$]
 GROUP BY State
@@ -26,19 +113,19 @@ Select category, avg(discount) as AvgDiscount
 FROM [Projects].[dbo].[StoreSales$]
 GROUP by category
 
---- Finding individual customers most purchase category
+--- Finding individual customers most purchase categories
 SELECT Customer_ID, Max(Category) as MostPopularCategory
 FROM [Projects].[dbo].[StoreSales$]
 GROUP by Customer_ID
 
---- Finding the most profitable catergory by state
+--- Finding the most profitable category by state
 SELECT Category, State, SUM(profit) as TotalProfits
 FROM [Projects].[dbo].[StoreSales$]
 GROUP BY State, Category
 ORDER by TotalProfits DESC
 
 
---- Finding the average profits by catergory by state
+--- Finding the average profits by category by state
 SELECT Category, State, AVG(profit) as AverageProfits
 FROM [Projects].[dbo].[StoreSales$]
 GROUP BY State, Category
@@ -50,7 +137,7 @@ FROM [Projects].[dbo].[StoreSales$]
 GROUP by Customer_ID
 ORDER by CustomerSales DESC
 
---- Which customers genereate the most profit.
+--- Which customers generate the most profit.
 SELECT Customer_Id, Sum(profit) as CustomerProfit
 FROM [Projects].[dbo].[StoreSales$]
 GROUP by Customer_ID
@@ -88,8 +175,27 @@ SELECT
     AS Correlation
 FROM [Projects].[dbo].[StoreSales$]
 
---- Finding avereage profit by year by state
+--- Finding average profit by year by state
 SELECT YEAR(Order_Date) as OrderYear, State, AVG(Profit) as AvgProfit
 FROM [Projects].[dbo].[StoreSales$]
 GROUP BY YEAR(Order_Date), State
 ORDER by OrderYear, State
+
+--- Finding average sale price for individual customers in techonology cateimgory
+SELECT Customer_ID, AVG(Sales) as AvgSales
+FROM [Projects].[dbo].[StoreSales$]
+WHERE Category = 'Technology'
+GROUP by Customer_ID
+
+
+--- Finding biggest profit margin by customer
+SELECT Customer_ID, (Profit / Sales) as ProfitMargin
+FROM [Projects].[dbo].[StoreSales$]
+ORDER by ProfitMargin DESC
+
+--- Finding the Sales, Profit and ProfitMargin for each month of the dataset
+Select YEAR(Order_Date) as OrderYear, DATENAME(Month, Order_Date) as OrderMonth, MONTH(Order_Date) as MonthNumber, SUM(Sales) as TotalSales, SUM(Profit) as TotalProfit, (SUM(Profit) / SUM(Sales) * 100) as TotalProfitMargin
+FROM [Projects].[dbo].[StoreSales$]
+GROUP BY YEAR(Order_Date), DATENAME(Month, Order_Date), MONTH(Order_Date)
+ORDER BY YEAR(Order_Date), MONTH(Order_Date)
+
