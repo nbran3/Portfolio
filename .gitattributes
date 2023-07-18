@@ -2,3 +2,4 @@
 *.sql linguist-language=sql
 *.ipynb linguist-language=Python
 *.R linguist-language=R
+*.docx diff=zip
