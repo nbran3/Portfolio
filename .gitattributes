@@ -3,4 +3,4 @@
 *.ipynb linguist-language=Python
 *.R linguist-language=R
 *.Rmd linguist-language=R
-*.docx diff=zip
+
