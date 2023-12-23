@@ -1,0 +1,40 @@
+# Imported libraries
+library(tidyverse)
+
+# Start coding here..
+
+yearly <- read.csv("data/yearly_deaths_by_clinic.csv")
+monthly <- read.csv("data/monthly_deaths.csv")
+
+glimpse(yearly)
+glimpse(monthly)
+
+yearly <- yearly %>% 
+  mutate(proportion_deaths = deaths / births)
+
+monthly <- monthly %>% 
+  mutate(proportion_deaths = deaths / births)
+
+glimpse(yearly)
+glimpse(monthly)
+
+ggplot(yearly, aes(x = year, y = proportion_deaths, color=clinic)) + 
+  geom_line()
+
+ggplot(monthly, aes(date, proportion_deaths)) +
+  geom_line() +
+  labs(x = "Year", y = "Proportion Deaths")
+
+handwashing_start = as.Date('1847-06-01')
+
+monthly <- monthly %>%
+  mutate(handwashing_started = date >= handwashing_start)
+
+ggplot(monthly, aes(x = date, y = proportion_deaths, color = handwashing_started)) +
+  geom_line()
+
+monthly_summary <- monthly %>% 
+  group_by(handwashing_started) %>%
+  summarize(mean_proportion_deaths = mean(proportion_deaths))
+
+monthly_summary
