@@ -1,7 +1,4 @@
-# Imported libraries
 library(tidyverse)
-
-# Start coding here..
 
 yearly <- read.csv("data/yearly_deaths_by_clinic.csv")
 monthly <- read.csv("data/monthly_deaths.csv")
