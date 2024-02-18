@@ -8,12 +8,12 @@ terraform {
 }
 
 provider "google" {
-  project = "terraform-demo-414703"
+  project = "terraform-demo-gcp-id"
   region  = "us-central1"
 }
 
 resource "google_storage_bucket" "demo-bucket" {
-  name          = "terraform-demo-414703-terra-bucket"
+  name          = "terraform-demo-gcp-id-terra-bucket"
   location      = "US"
   force_destroy = true
 
