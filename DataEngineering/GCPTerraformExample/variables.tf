@@ -4,12 +4,10 @@ variable "credentials" {
 
 }
 
-
 variable "project" {
   description = "GCP Project ID"
   default     = "terraform-demo-414703"
 }
-
 
 variable "location" {
   description = "GCP Project Location"
@@ -20,7 +18,6 @@ variable "region" {
   description = "GCP Region Name"
   default     = "us-central1"
 }
-
 
 variable "bq_dataset_name" {
   description = "BigQuery dataset name"
