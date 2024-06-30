@@ -1,1 +1,2 @@
-
+The first Dashboard is Customer Segmentation, which provides a comprehensive view of customer demographics, segmented by various attributes such as country, gender, age, membership type, and income bracket. This interactive dashboard allows users to filter and analyze customer data to gain deeper insights into customer profiles and behaviors. 
+![image](https://github.com/nbran3/Portfolio/assets/106123749/8fb08801-0895-40d4-b346-46dd5dd6d7f9)
