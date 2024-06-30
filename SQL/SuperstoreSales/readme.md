@@ -6,3 +6,6 @@ The second dashboard is the Revenue and Sales Analysis dashboard, which provides
 
 The third dashboard is the Customer Feedback and Satisfaction dashboard which provides a comprehensive overview of customer feedback and satisfaction levels across various dimensions. It includes several key visualizations and interactive elements to allow for detailed analysis
 ![image](https://github.com/nbran3/Portfolio/assets/106123749/9c6f18a3-aa03-4cbf-93bf-0e2c7452e9fb)
+
+The fourth dashboard is the Order Status and Information dashboard which provides an overview of the statuses of orders, the type of shipping method, payment method, and customer ratings. 
+![image](https://github.com/nbran3/Portfolio/assets/106123749/d0853efd-3ac5-41e5-a878-2686dcb1d98b)
