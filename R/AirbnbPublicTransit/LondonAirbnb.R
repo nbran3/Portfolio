@@ -1,15 +1,17 @@
+library(magrittr)
+library(FNN)
+library(tidyverse)
+library(broom)
+library(dplyr)
 library(shiny)
 library(leaflet)
-library(dplyr)
-library(tidyverse)
 library(RColorBrewer)
-library(sf)
-library(FNN)  
+library(sf) 
 
-LondonAirbnb = read.csv("C:\\Users\\nbwan\\Documents\\RStudio\\airbnb\\LondonAirbnb.csv")
-tube <- read.csv("C:\\Users\\nbwan\\Documents\\RStudio\\airbnb\\LondonTube.csv")
+LondonAirbnb = read.csv("LondonAirbnb.csv")
+tube <- read.csv("LondonTube.csv")
 
-LDNshape <- read_sf("C:\\Users\\nbwan\\Documents\\RStudio\\airbnb\\statistical-gis-boundaries-london\\statistical-gis-boundaries-london\\ESRI\\London_Borough_Excluding_MHW.shp")
+LDNshape <- read_sf("statistical-gis-boundaries-london\\statistical-gis-boundaries-london\\ESRI\\London_Borough_Excluding_MHW.shp")
 LDNshape <- st_transform(LDNshape, crs = 4326)
 
 LondonAirbnb <- LondonAirbnb[, c("latitude", "longitude", "price", "name")]
@@ -68,6 +70,14 @@ app3_server <- function(input, output, session) {
         colors = palette(brewer.pal(n=3,name ='YlGn')),
         labels = c("Low", "Medium", "High"),
         title = "Price Legend"
+      )
+    
+    m <- m %>%
+      addLegend(
+        position = "bottomright",
+        colors = c("blue"),
+        labels = c("Tube Stop"),
+        title = "Tube Legend"
       )
     
     m <- m %>%
