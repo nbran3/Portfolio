@@ -1,9 +1,18 @@
 library(gt)
+library(magrittr)
+library(FNN)
+library(tidyverse)
+library(broom)
+library(dplyr)
+library(shiny)
+library(leaflet)
+library(RColorBrewer)
+library(sf)
 
 data(metro)
-ParisAirbnb <- read.csv("C:\\Users\\nbwan\\Documents\\RStudio\\airbnb\\parisairbnb.csv")
+ParisAirbnb <- read.csv("parisairbnb.csv")
 
-ParisShape <- read_sf("C:\\Users\\nbwan\\Documents\\RStudio\\airbnb\\paris.geojson")
+ParisShape <- read_sf("paris.geojson")
 ParisShape <- st_transform(ParisShape, crs = 4326)
 
 ParisAirbnb <- ParisAirbnb[,c("latitude",{"longitude"}, {"price"}, {"name"})]
@@ -60,6 +69,14 @@ app4_server <- function(input, output, session) {
         colors = palette(brewer.pal(n=3,name ='YlGn')),
         labels = c("Low", "Medium", "High"),
         title = "Price Legend"
+      )
+    
+    m <- m %>%
+      addLegend(
+        position = "bottomright",
+        colors = c("blue"),
+        labels = c("Metro Stop"),
+        title = "Metro Legend"
       )
     
     m <- m %>%
