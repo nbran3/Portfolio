@@ -1,21 +1,23 @@
+library(magrittr)
+library(FNN)
+library(tidyverse)
+library(broom)
+library(dplyr)
 library(shiny)
 library(leaflet)
-library(dplyr)
-library(tidyverse)
 library(RColorBrewer)
-library(sf) 
-library(FNN)     
+library(sf)
 
-sf <- read.csv("C:\\Users\\nbwan\\Documents\\RStudio\\airbnb\\sf.csv")
-sm <- read.csv("C:\\Users\\nbwan\\Documents\\RStudio\\airbnb\\sanmateo.csv")
-sc <- read.csv("C:\\Users\\nbwan\\Documents\\RStudio\\airbnb\\santaclara.csv")
-oak <- read.csv("C:\\Users\\nbwan\\Documents\\RStudio\\airbnb\\oakland.csv")
-shape <- read_sf("C:\\Users\\nbwan\\Documents\\RStudio\\airbnb\\ca_counties\\CA_Counties.shp")
+sf <- read.csv("sf.csv")
+sm <- read.csv("sanmateo.csv")
+sc <- read.csv("santaclara.csv")
+oak <- read.csv("oakland.csv")
+shape <- read_sf("ca_counties\\CA_Counties.shp")
 
 SFBayShape <- shape[shape$NAME %in% c("San Francisco", "San Mateo", "Santa Clara", "Alameda"), ]
 SFBayShape <- st_transform(SFBayShape, crs = 4326)
 
-stations <- read.csv("C:\\Users\\nbwan\\Documents\\RStudio\\airbnb\\Station_Names.csv")
+stations <- read.csv("Station_Names.csv")
 
 sfcoord <- sf[,c("latitude",{"longitude"})]
 stationcoord <- stations[,c("Latitude",{"Longitude"})]
@@ -157,11 +159,10 @@ app2_server <- function(input, output, session) {
       addLegend(
         position = "bottomright",
         colors = c("blue", "red"),
-        labels = c("BART", "Caltrain"),
+        labels = c("BART Stop", "Caltrain Stop"),
         title = "Train Type"
       )
     
     m
   })
 }
-
