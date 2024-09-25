@@ -1,4 +1,4 @@
-install.packages(quarto)
+library(magrittr)
 library(FNN)
 library(tidyverse)
 library(broom)
@@ -8,9 +8,9 @@ library(leaflet)
 library(RColorBrewer)
 library(sf)
 
-NYCshapefile = read_sf("C:\\Users\\nbwan\\Documents\\RStudio\\airbnb\\Borough Boundaries\\geo_export_d079e284-a4b2-4fcd-8acc-1e851205e8ce.shp")
-NYCairbnb <- read.csv("C:\\Users\\nbwan\\Documents\\RStudio\\airbnb\\new_york_listings_2024.csv")
-NYCmetrodata <- read.csv("C:\\Users\\nbwan\\Documents\\RStudio\\airbnb\\MTA_Subway_Stations.csv")
+NYCshapefile = read_sf("Borough Boundaries/geo_export_d079e284-a4b2-4fcd-8acc-1e851205e8ce.shp")
+NYCairbnb <- read.csv("new_york_listings_2024.csv")
+NYCmetrodata <- read.csv("MTA_Subway_Stations.csv")
 
 NYCairbnbcoord <- NYCairbnb[,c("latitude",{"longitude"})]
 NYCmetrocoord <- NYCmetrodata[,c("GTFS.Latitude",{"GTFS.Longitude"})]
@@ -36,7 +36,6 @@ app1_ui <- fluidPage(
 app1_server <- function(input, output, session) {
   
   output$map <- renderLeaflet({
-    # Create the map
     m <- leaflet(data=NYCshapefile) %>%
       addTiles("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png") %>%
       setView(lng = -74.0060, lat = 40.7128, zoom = 12) %>%
@@ -69,6 +68,14 @@ app1_server <- function(input, output, session) {
         colors = palette(brewer.pal(n=3,name ='YlGn')),
         labels = c("Low", "Medium", "High"),
         title = "Price Legend"
+      )
+    
+    m <- m %>%
+      addLegend(
+        position = "bottomright",
+        colors = c("blue"),
+        labels = c("MTA Stop"),
+        title = "MTA Legend"
       )
     
     
