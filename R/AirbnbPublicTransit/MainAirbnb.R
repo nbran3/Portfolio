@@ -1,14 +1,18 @@
+library(magrittr)
+library(FNN)
+library(tidyverse)
+library(broom)
+library(dplyr)
 library(shiny)
 library(leaflet)
-library(dplyr)
-library(tidyverse)
-library(RColorBrewer) 
+library(RColorBrewer)
+library(sf)
 
 ui <- fluidPage(
-  titlePanel("Multi-App Shiny Dashboard"),
+  titlePanel("Mapping Airbnb Prices and Proximity to Public Transit Across Global Cities"),
   sidebarLayout(
     sidebarPanel(
-      selectInput("app_select", "Select an app:", 
+      selectInput("app_select", "Select an City:", 
                   choices = c("NYC Airbnb and Subway Map", "Bay Area Airbnb and Train Map", "London Airbnb and Tube Map", "Paris Airbnb and Metro Map"))
     ),
     mainPanel(
