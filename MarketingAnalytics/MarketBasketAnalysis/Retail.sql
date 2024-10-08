@@ -4,7 +4,7 @@
 SELECT DISTINCT(COUNT(InvoiceNo)) as NumofUniqueInvoices
 FROM `onlineretail.retail`
 
---- Total number of invoices by month - Pretty nromal distribution as the year goes on more invoices are submitted
+--- Total number of invoices by month - Pretty normal distribution as the year goes on more invoices are submitted
 SELECT COUNT(InvoiceNo) as CountofInvoices, EXTRACT(MONTH FROM InvoiceDate) as InvoiceDate
 FROM `onlineretail.retail`
 GROUP by InvoiceDate
@@ -21,13 +21,13 @@ ORDER by CountofInvoices DESC
 SELECT COUNT(DISTINCT CustomerID)
 FROM `onlineretail.retail`
 
---- Average Number of items purchase per customers - 123.95
-SELECT COUNT(Quantity) / Count(DISTINCT CustomerID)
+--- Average Number of items purchase per customers - 2.45
+SELECT AVG(Quantity) / Count(CustomerID)
 FROM `onlineretail.retail`
 
 
---- Average spending per customers - 571.55
-SELECT SUM(UnitPrice) / Count(DISTINCT CustomerID)
+--- Average spending per customers - 1.13
+SELECT AVG(UnitPrice) / Count(CustomerID)
 FROM `onlineretail.retail`
 
 --- Product Popularity
