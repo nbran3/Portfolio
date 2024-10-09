@@ -1,0 +1,211 @@
+---
+title: "Market Basket Analysis"
+author: "Noah Brannon"
+date: "2024-10-06"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+options(knitr.duplicate.label = "allow")
+library(tidyverse)
+library(ggplot2)
+library(lubridate)
+library(arules)
+library(arulesViz)
+library(RColorBrewer)
+library(dplyr)
+
+df <- read.csv("online_retail.csv")
+transactions <- read.transactions("transactions.csv", format = "single", sep = ",", cols = c("InvoiceNo", "StockCode"), header = TRUE)
+
+```
+
+## Introduction
+
+This is a Market Basket Analysis Project. This project aims to find items that are often bought together that could inform future decisions on product placement in the store, cross-sell opportunities, and to understand customer behavior to help develop marketing and deal/ sale strategies. I found this dataset on Kaggle and appears to be some sort of department store that is predominately based in the United Kingdom, but does have a global presence.
+
+### Summary Statistics and Exploratory Data Analysis
+
+This section will go over what I found in the beginning of exploring the dataset
+
+```{r cars}
+summary(df)
+```
+
+There is not a lot you can see from the basic summary statistics because many of the columns are strings. The only two columns that are worth mentioning is the Quantity and UnitPrice columns which shows that people tend to purchase 3 items of an individual item per individual transaction, which is pretty strange, but again this is not a real dataset. For UnitPrice that average price per item per individual transaction is 2.08. Both of these values are the median values as there is clear outlines in both columns which causes the mean for both columns to drastically increase. As for the rest of the columns, analysis could be better performed in SQL, which is what I did.
+
+To summarize what I found in SQL, I answered a set of about 15 questions/ queries which can be seen on my GitHub repository for this project. Some things I found was that the United Kingdom was the predominate country across the board, for revenue, number of purchases. The dataset however only included 541,909 unique invoices and 4732 unique customers which is not a ton when trying to make predictions about what items are often bought together. The average spending per customer was 2.45 and I guess people bought many of these items in bulk because the average amount spent per customer was 1.13, which of course could be skewed because of outliers, but this does indicate that people are able to get multiple items without spending much. Revenue and the number of invoices followed a pretty normal distribution as to what you would expect for a department store, with it at its low point in the late Winter after the new year and the high point during the Christmas shopping period.
+
+Next I will show some graphs that I generated in R, for better insights into the data. First up is the top 10 most sold products, not much to mention here other than there is a steep drop off between the third and fourth most popular items of over 500 items sold. The items from most popular to least popular on the graph below is: WHITE HANGING HEART T-LIGHT HOLDER, REGENCY CAKESTAND 3 TIER, JUMBO BAG RED RETROSPOT, PARTY BUNTING, LUNCH BAG RED RETROSPOT, ASSORTED COLOUR BIRD ORNAMENT, SET OF 3 CAKE TINS PANTRY DESIGN, SMALL POPCORN HOLDER, PACK OF 72 RETROSPOT CAKE CASES, and LUNCH BAGBLACK SKULL.
+
+```{r Graph 1, echo=FALSE}
+df$InvoiceDatetime <- as.POSIXct(df$InvoiceDate, format = "%m/%d/%Y %H:%M")
+
+PopularItems <- df %>%
+  group_by(StockCode) %>%
+  summarize(Count = n()) %>%
+  arrange(desc(Count)) %>%
+  slice(1:10) %>%
+  ggplot(aes(x = reorder(StockCode, Count), y = Count, fill = StockCode)) +
+  geom_bar(stat= 'identity') +
+  coord_flip()+
+  ggtitle('Most Popular Items') +
+  theme(legend.position = 'none')
+  
+PopularItems
+```
+
+The next graph is a time series graph of the total number of items sold per day for the entire dataset. This dataset takes place almost entirely in the year 2011, and like how I mentioned above based off the analysis done in SQL, the year starts off strong with the after Christmas sales but then falls dramatically in the late winter and then gradually builds up until the Christmas/ end of year shopping time where shopping is at its peak for the company. Here each day is color-coded as well.
+
+```{r Graph 2, echo=FALSE}
+df$InvoiceDatetime <- as.POSIXct(df$InvoiceDate, format = "%m/%d/%Y %H:%M")
+
+ItemsSoldByDay <- df %>%
+  mutate(Date = as.Date(InvoiceDatetime)) %>%
+  group_by(Date) %>%
+  summarise(Count = n()) %>%
+  mutate(Day = wday(Date, label = TRUE)) %>% 
+  ggplot(aes(x = Date, y = Count, fill = Day)) +
+  geom_bar(stat = "identity") +
+  ggtitle("Items sold per day")
+  
+ItemsSoldByDay
+```
+
+The last graph and last part of the EDA section is the total items per transaction by hour. Again if you work ever worked for a retail or shopping company nothing is too shocking here, besides the last data point, but as the day goes on the number of total items goes up until it reaches it's second highest peak at 16:00 or 4 PM and then goes down as the day unwinds and then during the last hour of the day 20:00 or 8 PM reaches its peak of 31.1 items transacted per hour. Not sure how to explain that one other than maybe it's people impulse buying right before bed, or maybe they realize the store is closing so they just buy a ton of things and try to get out before the store closes?
+
+```{r Graph 3, echo=FALSE}
+df$InvoiceDatetime <- as.POSIXct(df$InvoiceDate, format = "%m/%d/%Y %H:%M")
+
+HourlySales <- df %>%
+  mutate(Hour = as.factor(hour(InvoiceDatetime))) %>%
+  group_by(Hour) %>%
+  summarize(Count = n())
+  
+HourlyTransactions <- df %>%
+  mutate(Hour = as.factor(hour(InvoiceDatetime))) %>%
+  group_by(Hour,InvoiceNo) %>%
+  summarise(n_distinct(InvoiceNo)) %>% 
+  summarize(Count = n())
+  
+  
+ItemsPerUniqueTrans <- data.frame(HourlySales, HourlyTransactions[2], HourlySales[2] / HourlyTransactions[2])
+colnames(ItemsPerUniqueTrans) <- c("Hour", "Line", "Unique", "Items.Trans")
+
+HourlySalesViz <-
+  ggplot(ItemsPerUniqueTrans, aes(x=Hour, y=Items.Trans, fill=Hour)) +
+  geom_bar(stat='identity') +
+  ggtitle("Total items per transaction by hour") +
+  theme(legend.position = "none") +
+  geom_text(aes(label=round(Items.Trans, 1)), vjust=2)
+
+HourlySalesViz
+```
+
+### Modeling 
+
+So because the point of this project was to figure out what customers were buying together, there are a few ways to proceed forward with the modeling aspect of the project. First, the data still had to be largely transformed in the sense that many StockCode of individual products had letters in them which are not ideal for any kind of machine learning project, so in order to transform I had to create a function that would replace each letter in every instance there was a letter in a StockCode column, basically what I did was that if there was an "A" in the column, it would get replaced with 101, "B" with 102, and all the way to "Z" with a 126. That actually probably took more time to complete than the modeling aspect because R is not the quickest program at data wrangling below is the code sample that I used to map the letters to codes: 
+```{r Code Function}
+letter_mapping <- c(
+  A = "101", B = "102", C = "103", D = "104", E = "105",
+  F = "106", G = "107", H = "108", I = "109", J = "110",
+  K = "111", L = "112", M = "113", N = "114", O = "115",
+  P = "116", Q = "117", R = "118", S = "119", T = "120",
+  U = "121", V = "122", W = "123", X = "124", Y = "125", Z = "126"
+)
+
+replace_letters <- function(code) {
+  for (letter in names(letter_mapping)) {
+    code <- gsub(letter, letter_mapping[letter], code)
+  }
+  return(code)
+}
+```
+
+After preparing the dataset for modeling, I decided to use the Apriori algorithm, a classic method in data mining for discovering frequent itemsets and generating association rules. The fundamental idea behind association rules is that they take the form A→B. For example, if Rule 42 states that when Item A is present, there is a good chance that Item B is also present, this is based on the algorithmic calculations of co-occurrence in transactions.
+
+There are a few metrics that control how the model performs calculations:
+
+Support: This metric measures how frequently an itemset appears in the dataset. A higher support value indicates that the item is more common. For this project, I chose a support threshold of 0.005, as the dataset is relatively small, with only 541,000 unique transactions. Thus, the number of items appearing together is expected to be lower.
+
+Confidence: This metric measures the reliability of the rule, specifically how often A→B holds true in the dataset. In this project, I set the confidence threshold at 65%, meaning that 65% of the transactions containing Item A also contain Item B. Below you can see the code for the model
+
+Lift: Lift is a measure used in association rule mining to evaluate the strength of an association rule. Specifically, it assesses how much more likely two items are to be found together in a transaction than would be expected if they were statistically independent.
+
+You may be confused between the concepts of lift and confidence, Think of confidence like a weather forecast. If the forecast says there's a 70% chance of rain when it’s cloudy, it means that in similar past situations, it rained 70% of the time. In the same way, confidence tells us how often one item is bought when another item is also bought. Think of Lift like a friend who wears sunglasses a lot, say 8 out 10 days, that is confidence, but lift helps you determine if its a coincidence or if it’s a strong habit, say the sun shines 10% of the time and they wear sunglasses 80% of the time during the 10% of when the sun shines. In the context of shopping, it would be like if paper cups and paper plates are purchased together 7 out of 10 times, and something like a cake stand and a bag were also purchased together 7 out of 10 times. Both of those ratios represent confidence, indicating that whenever one item is bought, there's a high chance the other is bought as well.
+
+However, lift helps us determine whether this pattern is significant or just a coincidence. For example, if paper cups and paper plates are commonly used together at parties and events, their lift would likely be greater than 1, indicating a strong association. This suggests that buying paper cups makes it more likely you'll buy paper plates, and vice versa.
+
+On the other hand, if cake stands and bags are often purchased together because shoppers just happen to buy them in similar contexts—like getting groceries or gifts—their lift might be closer to 1. This would indicate that the connection isn't particularly strong; they're just coincidentally bought together without a deeper relationship. 
+```{r model}
+rules <- apriori(transactions, parameter = list(supp = 0.01, conf = 0.75))
+
+```
+Below is a scatter plot of the first 10,000 rules that the model generated. The total number of rules generated is 1.8 million, which is too large to visualize meaningfully. By focusing on the first 10,000 rules, we can gather insights while keeping the analysis manageable.
+
+In this plot:
+
+X-axis (Support): This shows how frequently an itemset appears in the dataset. Higher support values indicate that the items are more commonly purchased together.
+
+Y-axis (Confidence): This measures the reliability of the rule, i.e., how often a particular item is bought when another item is bought.
+
+Color Intensity (Lift): The shading represents the lift of the rule. Lift tells us how much more likely the items are to be bought together than by chance. The darker the green, the higher the lift, which means stronger associations between items.
+
+As you can see, the scatter plot clusters around high-confidence and low-support areas, meaning that while some associations occur frequently, many do not. However, those rules that have higher support may also have significant lift, which indicates strong associations. This graph allows us to identify the strongest rules efficiently without needing to evaluate all 1.8 million.
+```{r rulesplot}
+rules.sub <- head(sort(rules, by = "lift"), 10000)
+plot(rules.sub, control = list(jitter = 2, col = rev(brewer.pal(9, "Greens")[c(3, 7, 8, 9)])), shading = "lift")
+
+```
+
+The graph below is a network plot that visualizes relationships between items based on the association rules generated by the Apriori algorithm. Each node (blue rectangle) represents a product, and the lines connecting them represent an association rule (red circle). The thickness and color of the lines indicate the strength of the association, with stronger rules being shown more prominently—specifically, the redder the rule circle, the stronger the association.
+
+Blue lines represent the link between products and rules, showing which products are frequently purchased together. For example, many people might buy certain items together, as represented by Rule 29. Red lines represent a stronger connection where a specific product consistently follows a rule. These are rarer, and in this case, they often point to one particular item: product code 84997c, a "BLUE 3 PIECE POLKADOT CUTLERY SET." This means that once these rules are triggered, that specific product tends to be purchased afterward.
+
+```{r rulesgraph}
+rules.sub <- subset(rules, subset = lift > 1.5)
+plot(rules.sub, method = "graph", engine = "html")
+```
+
+
+### Results and Summary
+
+I will now dive into the summary of the rules, I will summarize the some of the top rules by lift as these are they are what the model is most confident in and then a few interesting but plausible rules that have less lift.
+
+Rules 1, 2, and 7 demonstrate a clear purchasing pattern associated with the Regency Tea Plate collection:
+
+  Rule 1 indicates that the purchase of Item 23172 "REGENCY TEA PLATE PINK" is frequently accompanied by Item 23171 "REGENCY TEA PLATE GREEN".
+  
+  Rule 2 shows that Item 23172 "REGENCY TEA PLATE PINK" is also often purchased alongside Item 23170 "REGENCY TEA PLATE ROSES".
+  
+  Rule 7 reveals that when Items 23172 (Pink) and 23171 (Green) are present in a transaction, Item 23170 (Roses) is likely to appear as well.
+
+This interconnected pattern suggests a strong relationship among these three Regency Tea Plate variants. The frequent co-occurrence of these items in transactions likely stems from strategic product placement and potentially a promotional offer, such as a volume discount for purchasing multiple sets.
+
+Rules 3 and 4 highlight interesting purchasing patterns within the "Poppy's Playhouse" product line:
+
+  Rule 3: Item 22746 "POPPY'S PLAYHOUSE LIVINGROOM" frequently appears in transactions with Item 22748 "POPPY'S PLAYHOUSE KITCHEN".
+  
+  Rule 4: Purchases of Item 22746 "POPPY'S PLAYHOUSE LIVINGROOM" often lead to purchases of Item 22745 "POPPY'S PLAYHOUSE BEDROOM".
+
+These rules suggest a strong relationship between the Living room set and both the Kitchen and Bedroom sets. However, there's no rule connecting all three products together. This indicates that while customers often buy the Living room set in combination with either the Kitchen or Bedroom set, they rarely purchase all three together.
+This pattern reveals a potential opportunity to enhance sales across the entire Poppy's Playhouse product line by encouraging customers to consider the complete set rather than just two components.
+
+Rule 5, 12, 13 showcases a purchasing pattern of parties supplies that one would most likely expect, however the way that products are sold matter.
+  
+  Rule 5: Item 21086 "SET/6 RED SPOTTY PAPER CUPS" is frequently in transactions with Item 21904 "SET/6 RED SPOTTY PAPER PLATES"
+  
+  Rule 12: Item 21086 "SET/6 RED SPOTTY PAPER CUPS" is seen in many transactions with Item 21080 "SET/20 RED RETROSPOT PAPER NAPKINS"
+  
+  Rule 13: Item 20180 "SET/20 RED RETROSPOT PAPER NAPKINS" is weakly associated with Item 21094 "SET/6 RED SPOTTY PAPER PLATES".
+  
+This pattern suggests that the paper cups could be positioned as the primary product, with plates and napkins as complementary items. The weak correlation in Rule 13 indicates that focusing on cup-centric promotions, rather than plate-napkin combinations, may be more effective in driving sales across all three products.
+
+Rule 6 and 8 indicates that customers may be looking for multiple items when shopping for holiday decorations.  
+
+  Rule 6: Item 22579 "WOODEN TREE CHRISTMAS SCANDINAVIAN" is often bundled in transcriptions with Item 22578 "WOODEN STAR CHRISTMAS SCANDINAVIAN".
+  
+  Rule 8: Item 22578 "WOODEN STAR CHRISTMAS SCANDINAVIAN" is seen at a lower rate, but still often in transactions with Item 22577 "WOODEN HEART CHRISTMAS SCANDINAVIAN".
+ 
+This purchasing behavior indicates that customers are interested in creating a cohesive Scandinavian-style Christmas decoration set. The wooden tree serves as the anchor product, with the star and heart ornaments as complementary items. This pattern presents an opportunity to enhance sales across the entire Scandinavian Christmas decoration line by considering how these items are presented and sold together.
