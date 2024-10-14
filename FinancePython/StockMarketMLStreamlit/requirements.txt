@@ -1,0 +1,9 @@
+streamlit
+yfinance
+pandas 
+sklearn.neighbors
+klearn.model_selection
+klearn.preprocessing
+pandas_datareader
+datetime
+sklearn.metrics
