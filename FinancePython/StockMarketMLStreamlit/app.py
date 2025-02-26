@@ -4,7 +4,6 @@ import pandas as pd
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
-import pandas_datareader as pdr
 import datetime as dt
 from sklearn.metrics import mean_squared_error, r2_score
 
@@ -21,8 +20,7 @@ stock_symbol = st.text_input('Enter the Stock Ticker (e.g., AAPL, TSLA):')
 if stock_symbol:
     try:
         # Try fetching data using pandas_datareader
-        yf.pdr_override()
-        stock = pdr.get_data_yahoo(stock_symbol, start, end)
+        stock =  yf.download(stock_symbol, start, end)
         
         if stock.empty:
             raise ValueError("No data retrieved")
