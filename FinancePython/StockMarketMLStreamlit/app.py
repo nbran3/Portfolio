@@ -12,7 +12,8 @@ st.title('Stock Price Prediction using KNN')
 
 # Set date range
 start = dt.datetime(2014, 1, 1)
-end = dt.datetime.now()
+end = dt.datetime.now().date()
+
 
 # Input for the stock ticker
 stock_symbol = st.text_input('Enter the Stock Ticker (e.g., AAPL, TSLA):')
