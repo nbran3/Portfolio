@@ -27,11 +27,11 @@ if stock_symbol:
             raise ValueError("No data retrieved")
         
     except Exception as e:
-        st.warning(f"Error with pandas_datareader: {str(e)}. Trying yfinance directly...")
+        st.warning(f"Error with yfinance date parsing: {str(e)}. Trying yfinance again...")
         
         try:
             # If pandas_datareader fails, try using yfinance directly
-            ticker = yf.Ticker(stock_symbol)
+            ticker = yf.download(stock_symbol)
             stock = ticker.history(start=start, end=end)
             
             if stock.empty:
